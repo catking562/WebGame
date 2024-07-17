@@ -1,0 +1,6 @@
+spring:
+  datasource:
+    url: '${bcsd_db_url}'
+    username: '${bcsd_db_username}'
+    password: '${bcsd_db_password}'
+    driver-class-name: com.mysql.cj.jdbc.Driver
