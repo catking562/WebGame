@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>회원가입</title>
+    <style>
+        #background {
+            background: #333333;
+        }
+        #inputform {
+            background-color: whitesmoke;
+            opacity: 90%;
+            width: 500px;
+            height: 580px;
+            border-radius: 5%;
+            margin: auto;
+            transform: translate(0%, 15%);
+            animation: brightup 1.5s;
+        }
+
+        #title {
+            margin: 10%;
+            transform: translate(0%, 150%);
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+        #input_username {
+            position: absolute;
+            left: 50%;
+            right: 50%;
+            transform: translate(-50%, 200%);
+            width: 400px;
+            height: 40px;
+            border-radius: 10px;
+        }
+
+        #input_password {
+            position: absolute;
+            left: 50%;
+            right: 50%;
+            transform: translate(-50%, 350%);
+            width: 400px;
+            height: 40px;
+            border-radius: 10px;
+        }
+
+        #input_password1 {
+            position: absolute;
+            left: 50%;
+            right: 50%;
+            transform: translate(-50%, 500%);
+            width: 400px;
+            height: 40px;
+            border-radius: 10px;
+        }
+
+        #submit {
+            position: absolute;
+            left: 50%;
+            right: 50%;
+            transform: translate(100%, 800%);
+            width: 100px;
+            height: 40px;
+            border-radius: 10px;
+        }
+
+        #tologin {
+            position: absolute;
+            left: 50%;
+            right: 50%;
+            transform: translate(-450%, 1850%);
+            width: 50px;
+            height: 20px;
+            font-size: 15px;
+        }
+
+        @keyframes brightup {
+            0%
+            {
+                transform: translateY(30%);
+                opacity: 0%;
+            }
+            100%
+            {
+                transform: translateY(15%);
+                opacity: 90%;
+            }
+        }
+    </style>
+</head>
+<body id="background">
+    <form id="inputform" action="regist" method="post">
+        <p id = "title">회원가입</p>
+        <input type="text" autocomplete="off" id = "input_username" placeholder="Username" name="username"><br>
+        <input type="password" autocomplete="off" id = "input_password" placeholder="Password" name="password"><br>
+        <input type="password" autocomplete="off" id = "input_password1" placeholder="Confirm Password" name="password"><br>
+        <input type="submit" id="submit" value="Regist">
+        <p id="tologin">로그인</p>
+    </form>
+</body>
+<script>
+    let input_username = document.getElementById("input_username");
+    let input_password = document.getElementById("input_password");
+    let input_password1 = document.getElementById("input_password1");
+    let submit = document.getElementById("submit");
+    let tologin = document.getElementById("tologin");
+
+    submit.onmouseover = input_username.onmouseover = input_password.onmouseover
+        = input_password1.onmouseover = mouseover;
+    submit.onmouseout = input_username.onmouseout = input_password.onmouseout
+        = input_password1.onmouseout = mouseout;
+    tologin.onmouseover = mouseover_text;
+    tologin.onmouseout = mouseout_text;
+    tologin.onclick = moveToLogin;
+
+    function mouseover(event) {
+        event.target.style.borderColor="aqua";
+    }
+
+    function mouseout(event) {
+        event.target.style.borderColor="";
+    }
+
+    function mouseover_text(event) {
+        event.target.style.color = "aqua";
+    }
+
+    function mouseout_text(event) {
+        event.target.style.color = "";
+    }
+
+    function moveToLogin(event) {
+        location.href = "login";
+    }
+
+    let form = document.getElementById("inputform");
+
+    form.onsubmit = onSubmit;
+
+    function onSubmit(event) {
+
+        return false;
+    }
+</script>
+</html>
