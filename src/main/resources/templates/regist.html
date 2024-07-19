@@ -75,6 +75,28 @@
             font-size: 15px;
         }
 
+        #loader {
+            margin: auto;
+            height: 100px;
+            width: 100px;
+            border: 10px solid azure;
+            border-right-color: aqua;
+            border-top-color: aqua;
+            border-radius: 100%;
+            animation: spin 1s infinite linear;
+        }
+
+        #warning_cantcollision {
+            position: absolute;
+            left: 50%;
+            right: 50%;
+            width: 400px;
+            height: 40px;
+            border-radius: 10px;
+            color: red;
+            transform: translate(-50%, 120%);
+        }
+
         @keyframes brightup {
             0%
             {
@@ -87,16 +109,25 @@
                 opacity: 90%;
             }
         }
+
+        @keyframes spin {
+            0%
+            { transform: rotate(0deg); }
+            100%
+            { transform: rotate(359deg); }
+        }
     </style>
 </head>
 <body id="background">
     <form id="inputform" action="regist" method="post">
         <p id = "title">회원가입</p>
+        <p id = "warning_cantcollision" hidden="hidden">* 이미 사용중인 닉네임입니다.</p>
         <input type="text" autocomplete="off" id = "input_username" placeholder="Username" name="username"><br>
         <input type="password" autocomplete="off" id = "input_password" placeholder="Password" name="password"><br>
         <input type="password" autocomplete="off" id = "input_password1" placeholder="Confirm Password" name="password"><br>
         <input type="submit" id="submit" value="Regist">
         <p id="tologin">로그인</p>
+        <div id="loader" hidden="hidden"></div>
     </form>
 </body>
 <script>
@@ -105,6 +136,9 @@
     let input_password1 = document.getElementById("input_password1");
     let submit = document.getElementById("submit");
     let tologin = document.getElementById("tologin");
+    let loading = document.getElementById("loader");
+    let title = document.getElementById("title");
+    let warning_nickname = document.getElementById("warning_cantcollision");
 
     submit.onmouseover = input_username.onmouseover = input_password.onmouseover
         = input_password1.onmouseover = mouseover;
@@ -135,11 +169,58 @@
     }
 
     let form = document.getElementById("inputform");
+    let issubmit = false;
+    const http = new XMLHttpRequest();
 
+    http.onreadystatechange = getResponse;
     form.onsubmit = onSubmit;
 
-    function onSubmit(event) {
+    function getResponse(event) {
+        disableLoading();
+        console.log(http.responseText)
+        switch(http.responseText) {
+            case "true":
+                location.href = "login"
+                break;
+            case "User_CantCollisionUserName":
+                warning_nickname.hidden = false;
+                break;
+        }
+        issubmit = false;
+    }
 
+    function disableLoading() {
+        loading.hidden = true;
+        input_username.hidden = false;
+        input_password.hidden = false;
+        input_password1.hidden = false;
+        submit.hidden = false;
+        tologin.hidden = false;
+        title.hidden = false;
+    }
+
+    function enableLoading() {
+        loading.hidden = false;
+        input_username.hidden = true;
+        input_password.hidden = true;
+        input_password1.hidden = true;
+        submit.hidden = true;
+        tologin.hidden = true;
+        title.hidden = true;
+    }
+
+    function onSubmit(event) {
+        if(issubmit) {
+            return false;
+        }
+        issubmit = true;
+        enableLoading();
+        if(input_password.value!=input_password1.value) {
+            return false;
+        }
+        http.open("POST", "http://localhost:8080/regist?username="
+            +input_username.value+"&password="+input_password.value);
+        http.send();
         return false;
     }
 </script>

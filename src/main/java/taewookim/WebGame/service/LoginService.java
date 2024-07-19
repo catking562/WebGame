@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import taewookim.WebGame.entity.User;
 import taewookim.WebGame.exception.HTTPApiException;
 import taewookim.WebGame.repository.UserRepository;
+import taewookim.WebGame.util.SHA;
 
 @Service
 @Transactional
@@ -20,7 +21,7 @@ public class LoginService {
 
     public ResponseEntity<Boolean> login(String username, String password, HttpServletRequest request
     ) throws HTTPApiException {
-        User user = userRepository.getUserWithLogin(username, password);
+        User user = userRepository.getUserWithLogin(username, SHA.sha3_512(password));
         if (user == null) {
             return ResponseEntity.ok(false);
         }
@@ -29,8 +30,10 @@ public class LoginService {
     }
 
     @Transactional
-    public ResponseEntity<Boolean> regist(String username, String password) {
-        User user = new User(username, password);
+    public ResponseEntity<Boolean> regist(
+            String username, String password
+    ) throws HTTPApiException {
+        User user = new User(username, SHA.sha3_512(password));
         userRepository.save(user);
         return ResponseEntity.ok(true);
     }

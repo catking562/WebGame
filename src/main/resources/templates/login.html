@@ -65,6 +65,17 @@
             font-size: 15px;
         }
 
+        #loader {
+            margin: auto;
+            height: 100px;
+            width: 100px;
+            border: 10px solid azure;
+            border-right-color: aqua;
+            border-top-color: aqua;
+            border-radius: 100%;
+            animation: spin 1s infinite linear;
+        }
+
         @keyframes brightup {
             0%
             {
@@ -77,6 +88,13 @@
                 opacity: 90%;
             }
         }
+
+        @keyframes spin {
+            0%
+            { transform: rotate(0deg); }
+            100%
+            { transform: rotate(359deg); }
+        }
     </style>
 </head>
 <body id="background">
@@ -86,6 +104,7 @@
         <input type="password" autocomplete="off" id = "input_password" placeholder="Password" name="password"><br>
         <input type="submit" id="submit" value="Login">
         <p id="toregist">회원가입</p>
+        <div id="loader" hidden="hidden"></div>
     </form>
 </body>
 <script>
@@ -117,15 +136,54 @@
     }
 
     function moveToRegist(event) {
-        location.href = "regist"
+        location.href = "regist";
     }
 
     let form = document.getElementById("inputform");
+    let issubmit = false;
+    const http = new XMLHttpRequest();
 
+    http.onreadystatechange = getResponse;
     form.onsubmit = onSubmit;
 
-    function onSubmit(event) {
+    function getResponse(event) {
+        disableLoading();
+        console.log(http.responseText);
+        switch(http.responseText) {
+            case "true":
+                //location.href = "login";
+                break;
+        }
+        issubmit = false;
+    }
 
+    function disableLoading() {
+        loading.hidden = true;
+        input_username.hidden = false;
+        input_password.hidden = false;
+        submit.hidden = false;
+        toregist.hidden = false;
+        title.hidden = false;
+    }
+
+    function enableLoading() {
+        loading.hidden = false;
+        input_username.hidden = true;
+        input_password.hidden = true;
+        submit.hidden = true;
+        toregist.hidden = true;
+        title.hidden = true;
+    }
+
+    function onSubmit(event) {
+        if(issubmit) {
+            return false;
+        }
+        issubmit = true;
+        enableLoading();
+        http.open("POST", "http://localhost:8080/login?username="
+            +input_username.value+"&password="+input_password.value);
+        http.send();
         return false;
     }
 </script>
