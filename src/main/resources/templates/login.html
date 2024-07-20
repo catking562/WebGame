@@ -112,6 +112,8 @@
     let input_password = document.getElementById("input_password");
     let submit = document.getElementById("submit");
     let toregist = document.getElementById("toregist");
+    let title = document.getElementById("title");
+    let loading = document.getElementById("loader");
 
     submit.onmouseover = input_username.onmouseover = input_password.onmouseover = mouseover;
     submit.onmouseout = input_username.onmouseout = input_password.onmouseout = mouseout;
@@ -148,10 +150,9 @@
 
     function getResponse(event) {
         disableLoading();
-        console.log(http.responseText);
         switch(http.responseText) {
             case "true":
-                //location.href = "login";
+                location.href = "gamematching";
                 break;
         }
         issubmit = false;
@@ -185,6 +186,7 @@
             +input_username.value+"&password="+input_password.value);
         http.send();
         return false;
+        alert("a")
     }
 </script>
 </html>
