@@ -108,12 +108,12 @@
     </form>
 </body>
 <script>
-    let input_username = document.getElementById("input_username");
-    let input_password = document.getElementById("input_password");
-    let submit = document.getElementById("submit");
-    let toregist = document.getElementById("toregist");
-    let title = document.getElementById("title");
-    let loading = document.getElementById("loader");
+    const input_username = document.getElementById("input_username");
+    const input_password = document.getElementById("input_password");
+    const submit = document.getElementById("submit");
+    const toregist = document.getElementById("toregist");
+    const title = document.getElementById("title");
+    const loading = document.getElementById("loader");
 
     submit.onmouseover = input_username.onmouseover = input_password.onmouseover = mouseover;
     submit.onmouseout = input_username.onmouseout = input_password.onmouseout = mouseout;
@@ -141,7 +141,7 @@
         location.href = "regist";
     }
 
-    let form = document.getElementById("inputform");
+    const form = document.getElementById("inputform");
     let issubmit = false;
     const http = new XMLHttpRequest();
 

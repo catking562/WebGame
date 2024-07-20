@@ -131,14 +131,14 @@
     </form>
 </body>
 <script>
-    let input_username = document.getElementById("input_username");
-    let input_password = document.getElementById("input_password");
-    let input_password1 = document.getElementById("input_password1");
-    let submit = document.getElementById("submit");
-    let tologin = document.getElementById("tologin");
-    let loading = document.getElementById("loader");
-    let title = document.getElementById("title");
-    let warning_nickname = document.getElementById("warning_cantcollision");
+    const input_username = document.getElementById("input_username");
+    const input_password = document.getElementById("input_password");
+    const input_password1 = document.getElementById("input_password1");
+    const submit = document.getElementById("submit");
+    const tologin = document.getElementById("tologin");
+    const loading = document.getElementById("loader");
+    const title = document.getElementById("title");
+    const warning_nickname = document.getElementById("warning_cantcollision");
 
     submit.onmouseover = input_username.onmouseover = input_password.onmouseover
         = input_password1.onmouseover = mouseover;
@@ -168,7 +168,7 @@
         location.href = "login";
     }
 
-    let form = document.getElementById("inputform");
+    const form = document.getElementById("inputform");
     let issubmit = false;
     const http = new XMLHttpRequest();
 
