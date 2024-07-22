@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import taewookim.WebGame.entity.User;
 import taewookim.WebGame.exception.HTTPApiException;
 import taewookim.WebGame.proxyservice.LoginProxyService;
 
@@ -24,6 +25,13 @@ public class LoginController {
     @GetMapping("/regist")
     public String regist() {
         return "regist";
+    }
+
+    @GetMapping("/loginuser")
+    public ResponseEntity<User> getLoginedUser(
+            @SessionAttribute(name = "loginUser")User loginUser
+            ) {
+        return ResponseEntity.ok(loginUser);
     }
 
     @PostMapping("/login")

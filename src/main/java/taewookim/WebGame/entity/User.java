@@ -23,6 +23,10 @@ public class User {
         this.created = DateTimeUtil.getNowDate();
     }
 
+    public String getUserName() {
+        return username;
+    }
+
     public User() {
 
     }
