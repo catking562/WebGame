@@ -59,15 +59,52 @@
          height: 80%;
      }
 
-     .matching {
+     #match {
          width: 200px;
          height: 50px;
          background: azure;
          margin-top: 10%;
          margin-left: calc(50% - 100px);
+         border-radius: 10px;
          text-align: center;
+         border-style: solid;
+         border-width: 2px;
      }
+
+    #loader {
+        margin: auto;
+        margin-top: 10%;
+        height: 100px;
+        width: 100px;
+        border: 10px solid azure;
+        border-right-color: aqua;
+        border-top-color: aqua;
+        border-radius: 100%;
+        animation: spin 1s infinite linear;
+    }
+
+    #matchcancel {
+        margin-top: 2%;
+        width: 200px;
+        height: 50px;
+        background: azure;
+        margin-left: calc(50% - 100px);
+        border-radius: 10px;
+        text-align: center;
+        border-style: solid;
+        border-width: 2px;
+    }
+
+    @keyframes spin {
+        0%
+        { transform: rotate(0deg); }
+        100%
+        { transform: rotate(359deg); }
+    }
 </style>
+<script src="/webjars/jquery/jquery.min.js"></script>
+<script src="/webjars/sockjs-client/sockjs.min.js"></script>
+<script src="/webjars/stomp-websocket/stomp.min.js"></script>
 <body class="background">
 <div class="topbar">
     <div class="user">
@@ -77,7 +114,9 @@
     <div class="username"></div>
 </div>
 <div class="main">
-    <div class="matching">매칭시작</div>
+    <div id="match"><br>매칭시작</div>
+    <div id="loader" hidden="hidden"></div>
+    <div id="matchcancel" hidden="hidden"><br>매칭취소</div>
 </div>
 </body>
 <script>
@@ -93,5 +132,81 @@
             });
     }
 
+    let match = document.getElementById("match");
+    let loader = document.getElementById("loader");
+    let matchcancel = document.getElementById("matchcancel");
+    let issubmit = false;
+
+    match.onmouseover = matchcancel.onmouseover = onHover;
+    match.onmouseout = matchcancel.onmouseout = noHover;
+    match.onclick = startMatch;
+    matchcancel.onclick = cancelMatch;
+
+    function onHover(event) {
+        event.target.style.borderColor = "aqua";
+    }
+
+    function noHover(event) {
+        event.target.style.borderColor = "";
+    }
+
+    function enableLoading() {
+        match.hidden = true;
+        loader.hidden = false;
+        matchcancel.hidden = false;
+    }
+
+    function disableLoading() {
+        match.hidden = false;
+        loader.hidden = true;
+        matchcancel.hidden = true;
+    }
+
+    function startMatch(event) {
+        if(issubmit) {
+            return false;
+        }
+        issubmit = true;
+        enableLoading();
+        connect();
+    }
+
+    function cancelMatch(event) {
+        if(!issubmit) {
+            return false;
+        }
+        issubmit = false;
+        disableLoading();
+        disconnect();
+    }
+
+    let stomp = null;
+
+    //참고: https://growth-coder.tistory.com/157
+    function connect() {
+        let socket = new SockJS("/matching");
+        stomp = Stomp.over(socket);
+        stomp.connect({}, function (frame) {
+            console.log('Connected: ' + frame);
+            stomp.subscribe('/match', function (match) {
+                recieveMessage(JSON.parse(match.body));
+            });
+        });
+    }
+
+    function disconnect() {
+        if(stomp!==null) {
+            stomp.disconnect();
+        }
+        console.log("Disconnected");
+    }
+
+    function sendMessage(message) {
+        stomp.send("/app/message", {}, JSON.stringify(message));
+    }
+
+    function recieveMessage(message) {
+
+    }
 </script>
 </html>
