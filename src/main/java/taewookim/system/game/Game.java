@@ -1,6 +1,8 @@
 package taewookim.system.game;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 public class Game {
@@ -18,6 +20,24 @@ public class Game {
 
     public Player getPlayer1() {
         return player1;
+    }
+
+    public void requestPlayerName(WebSocketSession session, String name) {
+        if(player.getConnection().equals(session)) {
+            player1.sendPlayerName(1, name);
+        }else if(player1.getConnection().equals(session)) {
+            player.sendPlayerName(1, name);
+        }
+    }
+
+    public void requestPlayerLocation(WebSocketSession session, double x, double y) {
+        if(player.getConnection().equals(session)) {
+            player.setX(x);
+            player.setY(y);
+        }else if(player1.getConnection().equals(session)) {
+            player1.setX(x);
+            player1.setY(y);
+        }
     }
 
     public void remove(WebSocketSession session) {
@@ -44,6 +64,14 @@ public class Game {
         time += deltaTime;
         switch(status) {
             case 0:
+                JsonObject ob = new JsonObject();
+                ob.addProperty("type", "TurnGame");
+                try{
+                    player.getConnection().sendMessage(new TextMessage(new Gson().toJson(ob)));
+                    player1.getConnection().sendMessage(new TextMessage(new Gson().toJson(ob)));
+                }catch(Exception e) {
+                    e.printStackTrace();
+                }
                 player.setX(100);
                 player1.setX(980);
                 player.sendPlayerLocation(0, player.getX(), player.getY());
@@ -53,7 +81,8 @@ public class Game {
                 status++;
                 break;
             case 1:
-
+                player.sendPlayerLocation(1, player1.getX(), player1.getY());
+                player1.sendPlayerLocation(1, player.getX(), player.getY());
                 break;
         }
     }

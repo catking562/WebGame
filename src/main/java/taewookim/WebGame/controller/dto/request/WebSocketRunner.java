@@ -8,7 +8,7 @@ import taewookim.system.watingroom.WatingRoom;
 public abstract class WebSocketRunner {
 
     public abstract void run(
-            WebSocketResponse packet,
+            WebSocketRequest packet,
             WebSocketSession session,
             WatingRoom watingRoom,
             HandShakeManager handshake,

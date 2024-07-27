@@ -223,6 +223,8 @@
             case "TurnGame":
                 turnInGame();
                 isGame = true;
+                sendMessage({'type':'PlayerName', 'name':user.userName})
+                createNameBar(0, user.userName);
                 break;
             case "PlayerLocation":
                 playerLocation(object['num'], object['x'], object['y']);
@@ -260,6 +262,7 @@
     let keyD = false;
 
     setInterval(update, 1000/60);
+    setInterval(sendPacket, 1000/10);
 
     function keydown(event) {
         switch(event.key) {
@@ -331,8 +334,8 @@
             text.innerHTML = name;
             text.style.textAlign = 'center';
             text.style.width = '100%';
-            namebar.appendChild(text);
             inGame.appendChild(namebar);
+            namebar.appendChild(text);
         }
     }
 
@@ -375,6 +378,18 @@
         projectile.style.top = (y + defaulty - 5) + "px";
         projectile.dx = dx;
         projectile.dy = dy;
+    }
+
+    function sendPacket() {
+        if(!isGame) {
+            return;
+        }
+        let player = document.getElementById("user0");
+        if(!player) {
+            return;
+        }
+        let cord = player.getBoundingClientRect();
+        sendMessage({'type':'PlayerLocation', 'x': cord.left, 'y':cord.top});
     }
 
     function update() {

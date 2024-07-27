@@ -49,4 +49,16 @@ public class Player {
         }
     }
 
+    public void sendPlayerName(int num, String name) {
+        JsonObject object = new JsonObject();
+        object.addProperty("type", "PlayerName");
+        object.addProperty("num", num);
+        object.addProperty("name", name);
+        try{
+            connect.sendMessage(new TextMessage(new Gson().toJson(object)));
+        }catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }

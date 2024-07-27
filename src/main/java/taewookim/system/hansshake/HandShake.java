@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import taewookim.system.DataManager;
+import taewookim.system.game.Game;
 
 import java.util.Map;
 
@@ -83,14 +84,7 @@ public class HandShake {
                     DataManager.watingRoom.add(session1);
                     isEnd = true;
                 }else if(is&&is1) {
-                    JsonObject ob = new JsonObject();
-                    ob.addProperty("type", "TurnGame");
-                    try{
-                        session.sendMessage(new TextMessage(new Gson().toJson(ob)));
-                        session1.sendMessage(new TextMessage(new Gson().toJson(ob)));
-                    }catch(Exception e) {
-                        e.printStackTrace();
-                    }
+                    DataManager.gameManager.add(new Game(session, session1));
                     isEnd = true;
                 }
                 break;
