@@ -95,6 +95,14 @@
         border-width: 2px;
     }
 
+    .inGame {
+        margin: auto;
+        margin-top: 20px;
+        width: 1080px;
+        height: 720px;
+        background: black;
+    }
+
     @keyframes spin {
         0%
         { transform: rotate(0deg); }
@@ -102,9 +110,6 @@
         { transform: rotate(359deg); }
     }
 </style>
-<script src="/webjars/jquery/jquery.min.js"></script>
-<script src="/webjars/sockjs-client/sockjs.min.js"></script>
-<script src="/webjars/stomp-websocket/stomp.min.js"></script>
 <body class="background">
 <div class="topbar">
     <div class="user">
@@ -118,7 +123,11 @@
     <div id="loader" hidden="hidden"></div>
     <div id="matchcancel" hidden="hidden"><br>매칭취소</div>
 </div>
+<div class="inGame" hidden="hidden">
+
+</div>
 </body>
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
 <script>
     let user = null;
     document.addEventListener('DOMContentLoaded', Load);
@@ -135,6 +144,8 @@
     let match = document.getElementById("match");
     let loader = document.getElementById("loader");
     let matchcancel = document.getElementById("matchcancel");
+    let main = document.getElementsByClassName("main")[0];
+    let inGame = document.getElementsByClassName("inGame")[0]
     let issubmit = false;
 
     match.onmouseover = matchcancel.onmouseover = onHover;
@@ -172,7 +183,7 @@
     }
 
     function cancelMatch(event) {
-        if(!issubmit) {
+        if(!issubmit||!cancancelmatching) {
             return false;
         }
         issubmit = false;
@@ -180,33 +191,235 @@
         disconnect();
     }
 
-    let stomp = null;
-
-    //참고: https://growth-coder.tistory.com/157
-    function connect() {
-        let socket = new SockJS("/matching");
-        stomp = Stomp.over(socket);
-        stomp.connect({}, function (frame) {
-            console.log('Connected: ' + frame);
-            stomp.subscribe('/match', function (match) {
-                recieveMessage(JSON.parse(match.body));
-            });
-        });
+    function turnInGame() {
+        main.hidden = true;
+        inGame.hidden = false;
     }
 
-    function disconnect() {
-        if(stomp!==null) {
-            stomp.disconnect();
+    function turnMain() {
+        main.hidden = false;
+        inGame.hidden = true;
+    }
+
+    //참고: https://growth-coder.tistory.com/157, https://github.com/sockjs/sockjs-client
+
+    let socket = null;
+    let cancancelmatching = true;
+    let isGame = false;
+
+    //이벤트 함수들
+    function onMessage(event) {
+        let object = JSON.parse(event.data);
+        switch(object['type']) {
+            case "FinishMatching":
+                cancancelmatching = false;
+                matchcancel.hidden = true;
+                sendMessage({"type":"AcceptMatching"});
+                break;
+            case "ReMatching":
+                cancancelmatching = true;
+                matchcancel.hidden = false;
+                break;
+            case "TurnGame":
+                turnInGame();
+                isGame = true;
+                break;
+            case "PlayerLocation":
+                playerLocation(object['num'], object['x'], object['y']);
+                break;
+            case "PlayerName":
+                break;
         }
-        console.log("Disconnected");
     }
 
+    //함수들
+    function connect() {
+        if(socket!==null) {
+            socket.close();
+        }
+        socket = new SockJS("/matching");
+        socket.onmessage = onMessage;
+    }
+    function disconnect() {
+        socket.close();
+        socket = null;
+    }
     function sendMessage(message) {
-        stomp.send("/app/message", {}, JSON.stringify(message));
+        socket.send(JSON.stringify(message));
     }
 
-    function recieveMessage(message) {
+    //인게임 함수
+    let defaultx = 81;
+    let defaulty = 78;
+    window.onkeydown = keydown;
+    window.onkeyup = keyup;
 
+    let keyW = false;
+    let keyA = false;
+    let keyS = false;
+    let keyD = false;
+
+    setInterval(update, 1000/60);
+
+    function keydown(event) {
+        switch(event.key) {
+            case "W":
+            case "w":
+            case "ㅈ":
+                keyW = true;
+                break;
+            case "S":
+            case "s":
+            case "ㄴ":
+                keyS = true;
+                break;
+            case "A":
+            case "a":
+            case "ㅁ":
+                keyA = true;
+                break;
+            case "D":
+            case "d":
+            case "ㅇ":
+                keyD = true;
+                break;
+        }
+    }
+
+    function keyup(event) {
+        switch(event.key) {
+            case "W":
+            case "w":
+            case "ㅈ":
+                keyW = false;
+                break;
+            case "S":
+            case "s":
+            case "ㄴ":
+                keyS = false;
+                break;
+            case "A":
+            case "a":
+            case "ㅁ":
+                keyA = false;
+                break;
+            case "D":
+            case "d":
+            case "ㅇ":
+                keyD = false;
+                break;
+        }
+    }
+
+    function clearInGame() {
+        //참고: https://stackoverflow.com/questions/3955229/remove-all-child-elements-of-a-dom-node-in-javascript
+        while(inGame.firstChild) {
+            inGame.removeChild(inGame.lastChild);
+        }
+    }
+
+    function createNameBar(num, name) {
+        let namebar = document.getElementById("name"+num);
+        if(!namebar) {
+            namebar = document.createElement('div');
+            let text = document.createElement('div');
+            namebar.id = "name"+num;
+            namebar.style.width = 200;
+            namebar.style.height = 25;
+            namebar.style.color = "aqua";
+            namebar.style.position = 'absolute';
+            text.innerHTML = name;
+            text.style.textAlign = 'center';
+            text.style.width = '100%';
+            namebar.appendChild(text);
+            inGame.appendChild(namebar);
+        }
+    }
+
+    function playerLocation(num, x, y) {
+        let player = document.getElementById("user"+num);
+        if(!player) {
+            player = document.createElement('div');
+            player.id = "user"+num;
+            player.style.background = "aqua"
+            player.style.width = '50px';
+            player.style.height = '50px';
+            player.style.position = 'absolute';
+            player.style.borderRadius = '100%';
+            inGame.appendChild(player);
+        }
+        let xx = (x + defaultx - 25);
+        let yy = (y + defaulty - 25);
+        player.style.left = xx + "px";
+        player.style.top = yy + "px";
+        let namebar = document.getElementById("name"+num);
+        if(namebar) {
+            namebar.style.left = (xx - 100) + "px";
+            namebar.style.top = (yy - 35) + "px";
+        }
+    }
+
+    function projectile(num, x, y, dx, dy) {
+        let projectile = document.getElementById("pro"+num);
+        if(!projectile) {
+            projectile = document.createElement('div');
+            projectile.id = "pro"+num;
+            projectile.style.background = "white";
+            projectile.style.width = '10px';
+            projectile.style.height = '10px';
+            projectile.style.position = 'absolute';
+            projectile.style.borderRadius = '100%';
+            inGame.appendChild(projectile);
+        }
+        projectile.style.left = (x + defaultx - 5) + "px";
+        projectile.style.top = (y + defaulty - 5) + "px";
+        projectile.dx = dx;
+        projectile.dy = dy;
+    }
+
+    function update() {
+        //기본 업데이트
+        let objects = inGame.children;
+        for(let object of objects) {
+            if(object.dx!=null&&object.dy!=null) {
+                let cord = object.getBoundingClientRect();
+                object.style.left = (cord.left + object.dx*0.0167) + "px";
+                object.style.top = (cord.top + object.dy*0.0167) + "px";
+            }
+        }
+        //플레이어 업데이트
+        let player = document.getElementById("user0");
+        let namebar = document.getElementById("name0");
+        if(!player) {
+            return;
+        }
+        let cord = player.getBoundingClientRect();
+        let cord1 = null;
+        if(namebar) {
+            cord1 = namebar.getBoundingClientRect()
+        }
+        if(keyW&&!keyS) {
+            player.style.top = (cord.top - 2) + "px";
+            if(cord1) {
+                namebar.style.top = (cord1.top - 2) + "px";
+            }
+        }else if(!keyW&&keyS) {
+            player.style.top = (cord.top + 2) + "px";
+            if(cord1) {
+                namebar.style.top = (cord1.top + 2) + "px";
+            }
+        }
+        if(keyA&&!keyD) {
+            player.style.left = (cord.left - 2) + "px";
+            if(cord1) {
+                namebar.style.left = (cord1.left - 2) + "px";
+            }
+        }else if(!keyA&&keyD) {
+            player.style.left = (cord.left + 2) + "px";
+            if(cord1) {
+                namebar.style.left = (cord1.left + 2) + "px";
+            }
+        }
     }
 </script>
 </html>
