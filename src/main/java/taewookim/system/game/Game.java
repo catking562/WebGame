@@ -32,12 +32,19 @@ public class Game {
 
     public void requestPlayerLocation(WebSocketSession session, double x, double y) {
         if(player.getConnection().equals(session)) {
-            player.setX(x);
-            player.setY(y);
+            checkIsTeleport(x, y, player);
         }else if(player1.getConnection().equals(session)) {
-            player1.setX(x);
-            player1.setY(y);
+            checkIsTeleport(x, y, player1);
         }
+    }
+
+    private void checkIsTeleport(double x, double y, Player player) {
+        if(Math.abs(x - player.getX())>15||Math.abs(y - player.getY())>15) {
+            player.sendPlayerLocation(1, player.getX(), player.getY());
+            return;
+        }
+        player.setX(x);
+        player.setY(y);
     }
 
     public void remove(WebSocketSession session) {
