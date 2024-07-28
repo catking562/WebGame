@@ -328,15 +328,12 @@
             namebar = document.createElement('div');
             let text = document.createElement('div');
             namebar.id = "name"+num;
-            namebar.style.width = 200;
-            namebar.style.height = 25;
+            namebar.style.width = 'min-content';
+            namebar.style.height = 25+"px";
             namebar.style.color = "aqua";
             namebar.style.position = 'absolute';
-            text.innerHTML = name;
-            text.style.textAlign = 'center';
-            text.style.width = '100%';
+            namebar.innerHTML = name;
             inGame.appendChild(namebar);
-            namebar.appendChild(text);
         }
     }
 
@@ -358,7 +355,8 @@
         player.style.top = yy + "px";
         let namebar = document.getElementById("name"+num);
         if(namebar) {
-            namebar.style.left = (xx - 100) + "px";
+            console.log(namebar.style.width)
+            namebar.style.left = (xx + namebar.clientWidth/4) + "px";
             namebar.style.top = (yy - 35) + "px";
         }
     }
