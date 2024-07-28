@@ -39,10 +39,10 @@ public class Game {
     }
 
     private void checkIsTeleport(double x, double y, Player player) {
-        if(Math.abs(x - player.getX())>15||Math.abs(y - player.getY())>15) {
+        /*if(Math.abs(x - player.getX())>15||Math.abs(y - player.getY())>15) {
             player.sendPlayerLocation(1, player.getX(), player.getY());
             return;
-        }
+        }*/
         player.setX(x);
         player.setY(y);
     }

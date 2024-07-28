@@ -8,7 +8,7 @@ import taewookim.system.MainSystem;
 public class WebGameApplication {
 
 	public static void main(String[] args) {
-		new MainSystem().start();
+		new MainSystem().start(); //새로운 스레드를 시작합니다.
 		SpringApplication.run(WebGameApplication.class, args);
 	}
 
