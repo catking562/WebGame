@@ -34,6 +34,7 @@ public class WatingRoom {
                 DataManager.watingGameManager.add(new HandShake(sess, session));
                 removing.add(session);
                 removing.add(sess);
+                sess = null;
             }else {
                 sess = session;
             }
