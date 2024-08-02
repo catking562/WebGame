@@ -232,6 +232,18 @@
             case "PlayerName":
                 createNameBar(object['num'], object['name'])
                 break;
+            case "GameEnd":
+                clearInGame();
+                turnMain();
+                break;
+            case "CreateProjectile":
+                let deley = (new Date().getTime() - object["s"])/1000;
+                let dx = object['dx'];
+                let dy = object['dy'];
+                console.log(dx);
+                console.log(dy)
+                projectile(object['num'], object['x'] + dx*deley, object['y'] + dy*deley, dx, dy, object['r']);
+                break;
         }
     }
 
@@ -349,34 +361,47 @@
             player.style.borderRadius = '100%';
             inGame.appendChild(player);
         }
-        let xx = (x + defaultx - 25);
+        /*let xx = (x + defaultx - 25);
         let yy = (y + defaulty - 25);
         player.style.left = xx + "px";
-        player.style.top = yy + "px";
+        player.style.top = yy + "px";*/
+        let xx = x - 25;
+        let yy = y - 25;
+        player.style.marginLeft = xx+"px";
+        player.style.marginTop = yy+"px";
+        player.x = x;
+        player.y = y;
         let namebar = document.getElementById("name"+num);
         if(namebar) {
-            console.log(namebar.style.width)
-            namebar.style.left = (xx + namebar.clientWidth/4) + "px";
-            namebar.style.top = (yy - 35) + "px";
+            /*namebar.style.left = (xx + namebar.clientWidth/4) + "px";
+            namebar.style.top = (yy - 35) + "px";*/
+            namebar.style.marginLeft = (xx - namebar.clientWidth*0.5+25) + "px";
+            namebar.style.marginTop = (yy - 35) + "px";
         }
     }
 
-    function projectile(num, x, y, dx, dy) {
+    function projectile(num, x, y, dx, dy, r) {
         let projectile = document.getElementById("pro"+num);
         if(!projectile) {
             projectile = document.createElement('div');
             projectile.id = "pro"+num;
             projectile.style.background = "white";
-            projectile.style.width = '10px';
-            projectile.style.height = '10px';
+            projectile.style.width = r+'px';
+            projectile.style.height = r+'px';
             projectile.style.position = 'absolute';
             projectile.style.borderRadius = '100%';
+            projectile.num = num;
             inGame.appendChild(projectile);
         }
-        projectile.style.left = (x + defaultx - 5) + "px";
-        projectile.style.top = (y + defaulty - 5) + "px";
+        /*projectile.style.left = (x + defaultx - 5) + "px";
+        projectile.style.top = (y + defaulty - 5) + "px";*/
+        projectile.style.marginLeft = (x - 5) + "px";
+        projectile.style.marginTop = (y - 5) + "px";
+        projectile.x = x;
+        projectile.y = y;
         projectile.dx = dx;
         projectile.dy = dy;
+        projectile.r = r;
     }
 
     function sendPacket() {
@@ -396,43 +421,28 @@
         let objects = inGame.children;
         for(let object of objects) {
             if(object.dx!=null&&object.dy!=null) {
-                let cord = object.getBoundingClientRect();
-                object.style.left = (cord.left + object.dx*0.0167) + "px";
-                object.style.top = (cord.top + object.dy*0.0167) + "px";
+                let xx = (object.x + object.dx*0.0167);
+                let yy = (object.y + object.dy*0.0167);
+                projectile(object.num, xx, yy, object.dx, object.dy, object.r);
+                if(xx>1200||xx<-120||yy>840||yy<-120) {
+                    object.remove();
+                }
             }
         }
         //플레이어 업데이트
         let player = document.getElementById("user0");
-        let namebar = document.getElementById("name0");
         if(!player) {
             return;
         }
-        let cord = player.getBoundingClientRect();
-        let cord1 = null;
-        if(namebar) {
-            cord1 = namebar.getBoundingClientRect()
-        }
         if(keyW&&!keyS) {
-            player.style.top = (cord.top - 2) + "px";
-            if(cord1) {
-                namebar.style.top = (cord1.top - 2) + "px";
-            }
+            playerLocation(0, player.x, player.y - 2);
         }else if(!keyW&&keyS) {
-            player.style.top = (cord.top + 2) + "px";
-            if(cord1) {
-                namebar.style.top = (cord1.top + 2) + "px";
-            }
+            playerLocation(0, player.x, player.y + 2);
         }
         if(keyA&&!keyD) {
-            player.style.left = (cord.left - 2) + "px";
-            if(cord1) {
-                namebar.style.left = (cord1.left - 2) + "px";
-            }
+            playerLocation(0, player.x - 2, player.y);
         }else if(!keyA&&keyD) {
-            player.style.left = (cord.left + 2) + "px";
-            if(cord1) {
-                namebar.style.left = (cord1.left + 2) + "px";
-            }
+            playerLocation(0, player.x + 2, player.y);
         }
     }
 </script>

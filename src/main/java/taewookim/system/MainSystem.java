@@ -12,7 +12,9 @@ public class MainSystem extends Thread {
     private boolean isEnd = false;
 
     private final int maxDelay = 1000/10;
-    private double deltaTime = maxDelay/1000d;
+    private double deltaTime = 0;
+
+    private Long lastUpdate = System.currentTimeMillis();
 
     public MainSystem() {
         this.watingroom = new WatingRoom();
@@ -30,13 +32,14 @@ public class MainSystem extends Thread {
     public void run() {
         while(!isEnd) {
             long before = System.currentTimeMillis();
+            deltaTime = (System.currentTimeMillis() - lastUpdate)/1000d;
+            lastUpdate = System.currentTimeMillis();
             //코드 시작
             watingroom.update(deltaTime);
             watingGameManager.update(deltaTime);
             gameManager.update(deltaTime);
             //코드 끝
             long delta = before - System.currentTimeMillis();
-            deltaTime = delta/1000d;
             long delay = maxDelay-delta;
             if(delay>0) {
                 try{

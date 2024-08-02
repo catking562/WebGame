@@ -4,11 +4,21 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
+import taewookim.WebGame.util.Random;
+import taewookim.WebGame.util.Triangle;
+import taewookim.system.game.gameobject.Player;
+import taewookim.system.game.gameobject.Projectile;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Game {
 
     private final Player player;
     private final Player player1;
+    private final Map<Integer, Projectile> numProjectile = new HashMap<>();
+    private final Map<Projectile, Integer> projectileNum = new HashMap<>();
 
     private boolean isEnd = false;
     private double time = 0;
@@ -22,7 +32,7 @@ public class Game {
         return player1;
     }
 
-    public void requestPlayerName(WebSocketSession session, String name) {
+    public synchronized void requestPlayerName(WebSocketSession session, String name) {
         if(player.getConnection().equals(session)) {
             player1.sendPlayerName(1, name);
         }else if(player1.getConnection().equals(session)) {
@@ -30,7 +40,7 @@ public class Game {
         }
     }
 
-    public void requestPlayerLocation(WebSocketSession session, double x, double y) {
+    public synchronized void requestPlayerLocation(WebSocketSession session, double x, double y) {
         if(player.getConnection().equals(session)) {
             checkIsTeleport(x, y, player);
         }else if(player1.getConnection().equals(session)) {
@@ -38,16 +48,16 @@ public class Game {
         }
     }
 
-    private void checkIsTeleport(double x, double y, Player player) {
+    private synchronized void checkIsTeleport(double x, double y, Player player) {
         /*if(Math.abs(x - player.getX())>15||Math.abs(y - player.getY())>15) {
-            player.sendPlayerLocation(1, player.getX(), player.getY());
+            player.sendPlayerLocation(0, player.getX(), player.getY());
             return;
         }*/
         player.setX(x);
         player.setY(y);
     }
 
-    public void remove(WebSocketSession session) {
+    public synchronized void remove(WebSocketSession session) {
         if(player.getConnection().equals(session)) {
             isEnd = true;
         }else if(player1.getConnection().equals(session)) {
@@ -55,20 +65,84 @@ public class Game {
         }
     }
 
+    public synchronized void addProjectile(Projectile projectile) {
+        int i = 0;
+        while(numProjectile.containsKey(i)) {
+            i++;
+        }
+        numProjectile.put(i, projectile);
+        projectileNum.put(projectile, i);
+    }
+
+    public synchronized void removeProjectile(Projectile projectile) {
+        int num = projectileNum.get(projectile);
+        numProjectile.remove(num);
+        projectileNum.remove(projectile);
+    }
+
+    public synchronized void createProjectile() {
+        boolean isX = Random.random.nextBoolean();
+        boolean isPlus = Random.random.nextBoolean();
+        double dig = (isX?isPlus?180:0:isPlus?90:270) +(Random.random.nextDouble()-0.5)*60;
+        Projectile projectile = new Projectile(
+                isX?isPlus?1180:-100:Random.random.nextDouble()*1080,
+                isX?Random.random.nextDouble()*720:isPlus?820:-100,
+                Triangle.getCos(dig)*150,
+                Triangle.getSin(dig)*150,
+                10
+        );
+        addProjectile(projectile);
+        int num = projectileNum.get(projectile);
+        player.sendProjectile(projectile, num);
+        player1.sendProjectile(projectile, num);
+    }
+
     public Game(WebSocketSession session, WebSocketSession session1) {
         this.player = new Player(session);
         this.player1 = new Player(session1);
     }
 
-    public boolean isEnd() {
+    public synchronized boolean isEnd() {
         return isEnd;
     }
 
-    public void update(double deltaTime) {
+    public synchronized void setEnd() {
+        isEnd = true;
+        player.sendEnd();
+        player1.sendEnd();
+        try{
+            player.getConnection().close();
+        }catch(Exception e) {
+            e.printStackTrace();
+        }
+        try{
+            player1.getConnection().close();
+        }catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public synchronized void collisionPlayer(Projectile projectile, Player player) {
+        double dx = projectile.getX() - player.getX();
+        double dy = projectile.getY() - player.getY();
+        double r = (projectile.getR()*0.5) + 25;
+        if(dx*dx+dy*dy<r*r) {
+            projectile.setEnd();
+            player.damage(1);
+            if(player.isDead()) {
+                setEnd();
+            }else {
+                player.sendHp(0, player.getHp());
+            }
+        }
+    }
+
+    public synchronized void update(double deltaTime) {
         if(isEnd) {
             return;
         }
         time += deltaTime;
+        //플레이어 업데이트
         switch(status) {
             case 0:
                 JsonObject ob = new JsonObject();
@@ -91,6 +165,26 @@ public class Game {
                 player.sendPlayerLocation(1, player1.getX(), player1.getY());
                 player1.sendPlayerLocation(1, player.getX(), player.getY());
                 break;
+        }
+        //투사체 업데이트
+        ArrayList<Projectile> removing = new ArrayList<>();
+        for (Projectile projectile : numProjectile.values()) {
+            projectile.update(deltaTime);
+            collisionPlayer(projectile, player);
+            collisionPlayer(projectile, player1);
+            if(projectile.isEnd()) {
+                removing.add(projectile);
+            }
+        }
+        for(Projectile projectile : removing) {
+            removeProjectile(projectile);
+        }
+        //투사체 생성
+        createProjectile();
+        //
+        if(time>60) {
+            setEnd();
+            status = -1;
         }
     }
 
