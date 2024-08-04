@@ -59,10 +59,11 @@ public class Game {
 
     public synchronized void remove(WebSocketSession session) {
         if(player.getConnection().equals(session)) {
-            isEnd = true;
+            setEnd(1);
         }else if(player1.getConnection().equals(session)) {
-            isEnd = true;
+            setEnd(0);
         }
+
     }
 
     public synchronized void addProjectile(Projectile projectile) {
@@ -106,20 +107,10 @@ public class Game {
         return isEnd;
     }
 
-    public synchronized void setEnd() {
+    public synchronized void setEnd(int winner) {
         isEnd = true;
-        player.sendEnd();
-        player1.sendEnd();
-        try{
-            player.getConnection().close();
-        }catch(Exception e) {
-            e.printStackTrace();
-        }
-        try{
-            player1.getConnection().close();
-        }catch(Exception e) {
-            e.printStackTrace();
-        }
+        player.sendEnd(winner==0?0:winner==1?1:-1);
+        player1.sendEnd(winner==0?1:winner==1?0:-1);
     }
 
     public synchronized void collisionPlayer(Projectile projectile, Player player) {
@@ -127,12 +118,20 @@ public class Game {
         double dy = projectile.getY() - player.getY();
         double r = (projectile.getR()*0.5) + 25;
         if(dx*dx+dy*dy<r*r) {
+            int num = projectileNum.get(projectile);
+            this.player.sendRemoveProjectile(num);
+            this.player1.sendRemoveProjectile(num);
             projectile.setEnd();
             player.damage(1);
             if(player.isDead()) {
-                setEnd();
+                setEnd(player.equals(this.player)?1:player.equals(this.player1)?0:-1);
             }else {
                 player.sendHp(0, player.getHp());
+                if(player.equals(this.player)) {
+                    player1.sendHp(1, player.getHp());
+                }else if(player.equals(this.player1)) {
+                    this.player.sendHp(1, player.getHp());
+                }
             }
         }
     }
@@ -183,7 +182,7 @@ public class Game {
         createProjectile();
         //
         if(time>60) {
-            setEnd();
+            setEnd(-1);
             status = -1;
         }
     }

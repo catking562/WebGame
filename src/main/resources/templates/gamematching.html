@@ -201,11 +201,22 @@
         inGame.hidden = true;
     }
 
+    function resetAll() {
+        issubmit = false;
+        cancancelmatching = true;
+        clearInGame();
+        turnMain();
+        disableLoading()
+    }
+
     //참고: https://growth-coder.tistory.com/157, https://github.com/sockjs/sockjs-client
 
     let socket = null;
     let cancancelmatching = true;
-    let isGame = false;
+    let gamestatus = 0;
+    let lastwinner = -1;
+
+    let last = 0;
 
     //이벤트 함수들
     function onMessage(event) {
@@ -221,8 +232,9 @@
                 matchcancel.hidden = false;
                 break;
             case "TurnGame":
+                disableLoading()
                 turnInGame();
-                isGame = true;
+                gamestatus = 1;
                 sendMessage({'type':'PlayerName', 'name':user.userName})
                 createNameBar(0, user.userName);
                 break;
@@ -233,18 +245,41 @@
                 createNameBar(object['num'], object['name'])
                 break;
             case "GameEnd":
-                clearInGame();
-                turnMain();
+                lastwinner = object['winner']
+                gamestatus = 2;
                 break;
             case "CreateProjectile":
-                let deley = (new Date().getTime() - object["s"])/1000;
+                let deley = 0;
+                let now = new Date().getTime();
+                if(last!==0) {
+                    deley = (now - last)/1000;
+                }
+                last = now;
                 let dx = object['dx'];
                 let dy = object['dy'];
-                console.log(dx);
-                console.log(dy)
                 projectile(object['num'], object['x'] + dx*deley, object['y'] + dy*deley, dx, dy, object['r']);
                 break;
+            case "Hp":
+                setHP(object['num'], object['hp'])
+                break;
         }
+    }
+
+    function createTitle(text, color, time) {
+        let title = document.createElement('div');
+        title.style.width = 'min-content';
+        title.style.height = "100px";
+        title.style.color = color;
+        title.style.position = 'absolute';
+        title.style.fontSize = '50px';
+        title.style.whiteSpace = "nowrap";
+        title.innerHTML = text;
+        title.style.marginTop = '300px'
+        title.style.marginLeft = (540 - title.clientWidth*0.5) + 'px';
+        inGame.appendChild(title);
+        setTimeout((ti)=>{
+            ti.remove()
+        }, time, title);
     }
 
     //함수들
@@ -338,15 +373,29 @@
         let namebar = document.getElementById("name"+num);
         if(!namebar) {
             namebar = document.createElement('div');
-            let text = document.createElement('div');
             namebar.id = "name"+num;
             namebar.style.width = 'min-content';
             namebar.style.height = 25+"px";
             namebar.style.color = "aqua";
             namebar.style.position = 'absolute';
             namebar.innerHTML = name;
+            namebar.style.whiteSpace = "nowrap"
             inGame.appendChild(namebar);
+            let hpbar = document.createElement('div');
+            hpbar.id = 'hp'+num;
+            hpbar.style.width = 'min-content';
+            hpbar.style.height = 25+"px";
+            hpbar.style.color = "aqua";
+            hpbar.style.position = 'absolute';
+            hpbar.innerHTML = "hp:10";
+            hpbar.style.whiteSpace = "nowrap"
+            inGame.appendChild(hpbar);
         }
+    }
+
+    function setHP(num, hp) {
+        let hpbar = document.getElementById('hp'+num);
+        hpbar.innerHTML = "hp:"+hp;
     }
 
     function playerLocation(num, x, y) {
@@ -372,11 +421,16 @@
         player.x = x;
         player.y = y;
         let namebar = document.getElementById("name"+num);
+        let hpbar = document.getElementById("hp"+num);
         if(namebar) {
             /*namebar.style.left = (xx + namebar.clientWidth/4) + "px";
             namebar.style.top = (yy - 35) + "px";*/
             namebar.style.marginLeft = (xx - namebar.clientWidth*0.5+25) + "px";
-            namebar.style.marginTop = (yy - 35) + "px";
+            namebar.style.marginTop = (yy - 50) + "px";
+        }
+        if(hpbar) {
+            hpbar.style.marginLeft = (xx - hpbar.clientWidth*0.5+25) + "px";
+            hpbar.style.marginTop = (yy - 35) + "px";
         }
     }
 
@@ -405,7 +459,7 @@
     }
 
     function sendPacket() {
-        if(!isGame) {
+        if(gamestatus===0) {
             return;
         }
         let player = document.getElementById("user0");
@@ -417,6 +471,30 @@
     }
 
     function update() {
+        switch(gamestatus) {
+            case 2:
+                gamestatus = -1;
+                let text = "무승부!";
+                let color = "white";
+                switch(lastwinner) {
+                    case 0:
+                        text = "승리!";
+                        color = "green";
+                        break;
+                    case 1:
+                        text = "패배!";
+                        color = "red";
+                        break;
+                }
+                createTitle(text, color, 2000);
+                setTimeout(()=>{
+                    gamestatus = 0;
+                    resetAll();
+                }, 2000);
+                return;
+            case -1:
+                return;
+        }
         //기본 업데이트
         let objects = inGame.children;
         for(let object of objects) {

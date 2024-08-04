@@ -97,7 +97,6 @@ public class Player {
         object.addProperty("dx", projectile.getDx());
         object.addProperty("dy", projectile.getDy());
         object.addProperty("r", projectile.getR());
-        object.addProperty("s", new Date().getTime());
         object.addProperty("num", num);
         try{
             connect.sendMessage(new TextMessage(new Gson().toJson(object)));
@@ -106,13 +105,13 @@ public class Player {
         }
     }
 
-    public void sendEnd() {
+    public void sendEnd(int winner) {
         JsonObject object = new JsonObject();
         object.addProperty("type", "GameEnd");
+        object.addProperty("winner", winner);
         try{
             connect.sendMessage(new TextMessage(new Gson().toJson(object)));
         }catch(Exception e) {
-            e.printStackTrace();
         }
     }
 
