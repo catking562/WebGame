@@ -466,11 +466,15 @@
         if(!player) {
             return;
         }
-        let cord = player.getBoundingClientRect();
-        sendMessage({'type':'PlayerLocation', 'x': cord.left, 'y':cord.top});
+        sendMessage({'type':'PlayerLocation', 'x': player.x, 'y':player.y});
     }
 
+    let lastupdate = 0;
+
     function update() {
+        let now = new Date().getTime();
+        let deltatime = (now - lastupdate)/1000;
+        lastupdate = now;
         switch(gamestatus) {
             case 2:
                 gamestatus = -1;
@@ -499,8 +503,8 @@
         let objects = inGame.children;
         for(let object of objects) {
             if(object.dx!=null&&object.dy!=null) {
-                let xx = (object.x + object.dx*0.0167);
-                let yy = (object.y + object.dy*0.0167);
+                let xx = (object.x + object.dx*deltatime);
+                let yy = (object.y + object.dy*deltatime);
                 projectile(object.num, xx, yy, object.dx, object.dy, object.r);
                 if(xx>1200||xx<-120||yy>840||yy<-120) {
                     object.remove();

@@ -43,7 +43,7 @@ public class MainSystem extends Thread {
             long delay = maxDelay-delta;
             if(delay>0) {
                 try{
-                    Thread.sleep(delay);
+                    sleep(delay);
                 }catch (Exception e) {
                 }
             }
