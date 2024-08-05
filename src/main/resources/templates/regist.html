@@ -218,7 +218,7 @@
         if(input_password.value!=input_password1.value) {
             return false;
         }
-        http.open("POST", "http://localhost:8080/regist?username="
+        http.open("POST", "http://circlegame.kro.kr:8080/regist?username="
             +input_username.value+"&password="+input_password.value);
         http.send();
         return false;

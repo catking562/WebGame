@@ -133,7 +133,7 @@
     document.addEventListener('DOMContentLoaded', Load);
 
     function Load() {
-        fetch('http://localhost:8080/loginuser')
+        fetch('http://circlegame.kro.kr:8080/loginuser')
             .then(response => response.json())
             .then(use => {
                 user = use;

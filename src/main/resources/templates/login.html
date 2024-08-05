@@ -182,7 +182,7 @@
         }
         issubmit = true;
         enableLoading();
-        http.open("POST", "http://localhost:8080/login?username="
+        http.open("POST", "http://circlegame.kro.kr:8080/login?username="
             +input_username.value+"&password="+input_password.value);
         http.send();
         return false;
