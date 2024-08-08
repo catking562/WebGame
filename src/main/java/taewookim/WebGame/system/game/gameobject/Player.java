@@ -1,15 +1,15 @@
-package taewookim.system.game.gameobject;
+package taewookim.WebGame.system.game.gameobject;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
-
-import java.util.Date;
+import taewookim.WebGame.entity.User;
+import taewookim.WebGame.system.UserSocket;
 
 public class Player {
 
-    private final WebSocketSession connect;
+    private final UserSocket connect;
 
     private double x = 0;
     private double y = 360;
@@ -33,12 +33,20 @@ public class Player {
     }
 
     public WebSocketSession getConnection() {
-        return connect;
+        return connect.getSession();
     }
 
-    public Player(WebSocketSession session) {
+    public User getUser() {
+        return connect.getUser();
+    }
+
+    public Player(UserSocket session) {
         connect = session;
         hp = 10;
+    }
+
+    public String getUserName() {
+        return connect.getName();
     }
 
     public void damage(int damage) {

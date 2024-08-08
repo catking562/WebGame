@@ -20,20 +20,20 @@ public class LoginProxyService {
         this.userservice = userservice;
     }
 
-    public ResponseEntity<Boolean> login(
+    public Boolean login(
             String username, String password, HttpServletRequest request
     ) throws HTTPApiException {
         if(username==null||password==null) {
-            return ResponseEntity.ok(false);
+            return false;
         }
         return loginservice.login(username, password, request);
     }
 
-    public ResponseEntity<Boolean> regist(
+    public Boolean regist(
             String username, String password
     ) throws HTTPApiException {
         if(username==null||password==null) {
-            return ResponseEntity.ok(false);
+            return false;
         }
         if(userservice.isExistName(username)) {
             throw new HTTPApiException(ExceptionType.User_CantCollisionUserName);

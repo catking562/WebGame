@@ -1,4 +1,4 @@
-package taewookim.system.game.gameobject;
+package taewookim.WebGame.system.game.gameobject;
 
 public class FireBall extends Projectile {
 

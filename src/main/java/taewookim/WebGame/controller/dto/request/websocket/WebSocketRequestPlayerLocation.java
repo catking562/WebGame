@@ -1,4 +1,4 @@
-package taewookim.WebGame.controller.dto.request;
+package taewookim.WebGame.controller.dto.request.websocket;
 
 public class WebSocketRequestPlayerLocation extends WebSocketRequest {
 

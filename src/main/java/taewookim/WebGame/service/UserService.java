@@ -1,6 +1,8 @@
 package taewookim.WebGame.service;
 
 import org.springframework.stereotype.Service;
+import taewookim.WebGame.entity.Score;
+import taewookim.WebGame.entity.User;
 import taewookim.WebGame.repository.UserRepository;
 
 @Service
@@ -14,6 +16,14 @@ public class UserService {
 
     public boolean isExistName(String username) {
         return userRepository.getUserByName(username) != null;
+    }
+
+    public Score getUserScore(String username) {
+        return userRepository.getUserByName(username).getScore();
+    }
+
+    public boolean isExistId(long id) {
+        return userRepository.isExistUser(id);
     }
 
 }

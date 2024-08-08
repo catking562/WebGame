@@ -16,6 +16,7 @@
     }
 
      .user {
+         position: absolute;
          margin: auto 96%;
          transform: translateY(20%);
          width: 30px;
@@ -46,10 +47,65 @@
      }
 
      .username {
+         position: absolute;
          margin-left: calc(95% - 200px);
          width: 200px;
          height: 30px;
-         transform: translateY(-80%);
+         transform: translateY(50%);
+         color: azure;
+         text-align: right;
+     }
+
+     .myscore {
+         position: absolute;
+         margin-left: calc(15% - 200px);
+         width: 200px;
+         height: 30px;
+         transform: translateY(50%);
+         color: azure;
+     }
+
+     .otherscore {
+         position: absolute;
+         margin-left: calc(11% - 200px);
+         width: 50px;
+         height: 30px;
+         transform: translateY(30%);
+         background: azure;
+         border-style: solid;
+         border-radius: 10px;
+         text-align: center;
+     }
+
+     .top5 {
+         position: absolute;
+         margin-left: calc(11% - 200px);
+         background: #222222;
+         width: 200px;
+         height: 300px;
+         transform: translateY(23%);
+         border-style: solid;
+         border-color: #111122;
+         border-radius: 20px;
+     }
+
+     .topscore {
+         width: 200px;
+         height: 30px;
+         margin-top: 25px;
+     }
+
+     .topscore-name {
+         width: 200px;
+         height: 30px;
+         position: absolute;
+         color: azure;
+     }
+
+     .topscore-score {
+         width:200px;
+         height: 30px;
+         position: absolute;
          color: azure;
          text-align: right;
      }
@@ -112,11 +168,35 @@
 </style>
 <body class="background">
 <div class="topbar">
+    <div class="otherscore">순위표</div>
+    <div class="myscore">점수: null</div>
     <div class="user">
         <div class="user_head"></div>
         <div class="user_body"></div>
     </div>
-    <div class="username"></div>
+    <div class="username">null</div>
+    <div hidden="hidden" class="top5">
+        <div class="topscore">
+            <div id="tn1" class="topscore-name">-</div>
+            <div id="ts1" class="topscore-score">-</div>
+        </div>
+        <div class="topscore">
+            <div id="tn2" class="topscore-name">-</div>
+            <div id="ts2" class="topscore-score">-</div>
+        </div>
+        <div class="topscore">
+            <div id="tn3" class="topscore-name">-</div>
+            <div id="ts3" class="topscore-score">-</div>
+        </div>
+        <div class="topscore">
+            <div id="tn4" class="topscore-name">-</div>
+            <div id="ts4" class="topscore-score">-</div>
+        </div>
+        <div class="topscore">
+            <div id="tn5" class="topscore-name">-</div>
+            <div id="ts5" class="topscore-score">-</div>
+        </div>
+    </div>
 </div>
 <div class="main">
     <div id="match"><br>매칭시작</div>
@@ -137,7 +217,12 @@
             .then(response => response.json())
             .then(use => {
                 user = use;
-                document.getElementsByClassName("username")[0].innerHTML = user.userName;
+                document.getElementsByClassName("username")[0].innerHTML = user['username'];
+                fetch('http://circlegame.kro.kr:8080/score?userId='+user['id'])
+                    .then(response => response.json())
+                    .then(use => {
+                        setScore(use['score']);
+                    });
             });
     }
 
@@ -145,13 +230,28 @@
     let loader = document.getElementById("loader");
     let matchcancel = document.getElementById("matchcancel");
     let main = document.getElementsByClassName("main")[0];
-    let inGame = document.getElementsByClassName("inGame")[0]
+    let inGame = document.getElementsByClassName("inGame")[0];
     let issubmit = false;
+    let myscore = document.getElementsByClassName("myscore")[0];
+    let otherscore = document.getElementsByClassName("otherscore")[0];
+    let top5 = document.getElementsByClassName("top5")[0];
 
-    match.onmouseover = matchcancel.onmouseover = onHover;
-    match.onmouseout = matchcancel.onmouseout = noHover;
+    let tn1 = document.getElementById("tn1");
+    let tn2 = document.getElementById("tn2");
+    let tn3 = document.getElementById("tn3");
+    let tn4 = document.getElementById("tn4");
+    let tn5 = document.getElementById("tn5");
+    let ts1 = document.getElementById("ts1");
+    let ts2 = document.getElementById("ts2");
+    let ts3 = document.getElementById("ts3");
+    let ts4 = document.getElementById("ts4");
+    let ts5 = document.getElementById("ts5");
+
+    match.onmouseover = matchcancel.onmouseover = otherscore.onmouseover = onHover;
+    match.onmouseout = matchcancel.onmouseout = otherscore.onmouseout = noHover;
     match.onclick = startMatch;
     matchcancel.onclick = cancelMatch;
+    otherscore.onclick = displayScore;
 
     function onHover(event) {
         event.target.style.borderColor = "aqua";
@@ -159,6 +259,10 @@
 
     function noHover(event) {
         event.target.style.borderColor = "";
+    }
+
+    function setScore(score) {
+        myscore.innerHTML = '내점수: '+score;
     }
 
     function enableLoading() {
@@ -171,6 +275,50 @@
         match.hidden = false;
         loader.hidden = true;
         matchcancel.hidden = true;
+    }
+
+    let isdisplayScore = false;
+
+    function setOtherScore(num, name, score) {
+        switch(num) {
+            case 1:
+                tn1.innerHTML = name;
+                ts1.innerHTML = score;
+                break;
+            case 2:
+                tn2.innerHTML = name;
+                ts2.innerHTML = score;
+                break;
+            case 3:
+                tn3.innerHTML = name;
+                ts3.innerHTML = score;
+                break;
+            case 4:
+                tn4.innerHTML = name;
+                ts4.innerHTML = score;
+                 break;
+            case 5:
+                tn5.innerHTML = name;
+                ts5.innerHTML = score;
+                break;
+        }
+    }
+
+
+
+    function displayScore() {
+        isdisplayScore = !isdisplayScore;
+        top5.hidden = !isdisplayScore;
+        if(isdisplayScore) {
+            fetch('http://circlegame.kro.kr:8080/scores')
+                .then(response => response.json())
+                .then(use => {
+                    list = use['list'];
+                    for(let i = 0; i<list.length; i++) {
+                        setOtherScore(i+1, list[i].username, list[i].score)
+                    }
+                });
+        }
     }
 
     function startMatch(event) {
@@ -206,7 +354,20 @@
         cancancelmatching = true;
         clearInGame();
         turnMain();
-        disableLoading()
+        disableLoading();
+        fetch('http://circlegame.kro.kr:8080/score?userId='+user['id'])
+            .then(response => response.json())
+            .then(use => {
+                setScore(use['score']);
+            });
+        fetch('http://circlegame.kro.kr:8080/scores')
+            .then(response => response.json())
+            .then(use => {
+                list = use['list'];
+                for(let i = 0; i<list.length; i++) {
+                    setOtherScore(i+1, list[i].username, list[i].score)
+                }
+            });
     }
 
     //참고: https://growth-coder.tistory.com/157, https://github.com/sockjs/sockjs-client
@@ -231,12 +392,26 @@
                 cancancelmatching = true;
                 matchcancel.hidden = false;
                 break;
+            case "RequireUser":
+                fetch('http://circlegame.kro.kr:8080/startmatching?id='+user['id']+"&username="+user['username'], {
+                    method: "POST"
+                })
+                    .then(response => response.json())
+                    .then(use => {
+                        if(!use) {
+                            cancelMatch();
+                            location.href = "login";
+                        }
+                    });
+                break;
+            case "RequireName":
+                sendMessage({'type':'PlayerName', 'name':user['username']})
+                break;
             case "TurnGame":
                 disableLoading()
                 turnInGame();
                 gamestatus = 1;
-                sendMessage({'type':'PlayerName', 'name':user.userName})
-                createNameBar(0, user.userName);
+                createNameBar(0, user['username']);
                 break;
             case "PlayerLocation":
                 playerLocation(object['num'], object['x'], object['y']);
@@ -506,7 +681,7 @@
                 let xx = (object.x + object.dx*deltatime);
                 let yy = (object.y + object.dy*deltatime);
                 projectile(object.num, xx, yy, object.dx, object.dy, object.r);
-                if(xx>1200||xx<-120||yy>840||yy<-120) {
+                if(xx>1200||xx<-120||yy>820||yy<-100) {
                     object.remove();
                 }
             }

@@ -8,28 +8,36 @@ import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
-import taewookim.WebGame.controller.dto.request.WebSocketRequestType;
-import taewookim.system.DataManager;
+import taewookim.WebGame.controller.dto.request.websocket.WebSocketRequestType;
+import taewookim.WebGame.system.MainSystem;
+import taewookim.WebGame.system.UserSocket;
+import taewookim.WebGame.system.game.AccessSystem;
 
 @Component
 public class WebSocketHandler extends TextWebSocketHandler {
 
+    private final AccessSystem System;
+
+    public WebSocketHandler(AccessSystem System) {
+        this.System = System;
+    }
+
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         super.afterConnectionEstablished(session);
-        DataManager.watingRoom.add(session);
+        System.getCheckSystem().addSocket(new UserSocket(session));
     }
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         super.handleTextMessage(session, message);
         JsonObject obj = (JsonObject) new JsonParser().parse(message.getPayload());
-        DataManager.requestPacket(session, new Gson().fromJson(obj, WebSocketRequestType.valueOf(obj.get("type").getAsString()).getClazz()));
+        System.requestPacket(session, new Gson().fromJson(obj, WebSocketRequestType.valueOf(obj.get("type").getAsString()).getClazz()));
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         super.afterConnectionClosed(session, status);
-        DataManager.remove(session);
+        System.remove(session);
     }
 }

@@ -1,5 +1,6 @@
-package taewookim.system.game;
+package taewookim.WebGame.system.game;
 
+import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.ArrayList;
@@ -7,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Component
 public class GameManager {
 
     private final List<Game> games = new ArrayList<Game>();

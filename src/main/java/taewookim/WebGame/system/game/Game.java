@@ -1,19 +1,24 @@
-package taewookim.system.game;
+package taewookim.WebGame.system.game;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
+import taewookim.WebGame.entity.Score;
+import taewookim.WebGame.repository.ScoreRepository;
 import taewookim.WebGame.util.Random;
 import taewookim.WebGame.util.Triangle;
-import taewookim.system.game.gameobject.Player;
-import taewookim.system.game.gameobject.Projectile;
+import taewookim.WebGame.system.UserSocket;
+import taewookim.WebGame.system.game.gameobject.Player;
+import taewookim.WebGame.system.game.gameobject.Projectile;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Game {
+
+    private final ScoreRepository scoreRepository;
 
     private final Player player;
     private final Player player1;
@@ -30,14 +35,6 @@ public class Game {
 
     public Player getPlayer1() {
         return player1;
-    }
-
-    public synchronized void requestPlayerName(WebSocketSession session, String name) {
-        if(player.getConnection().equals(session)) {
-            player1.sendPlayerName(1, name);
-        }else if(player1.getConnection().equals(session)) {
-            player.sendPlayerName(1, name);
-        }
     }
 
     public synchronized void requestPlayerLocation(WebSocketSession session, double x, double y) {
@@ -98,9 +95,10 @@ public class Game {
         player1.sendProjectile(projectile, num);
     }
 
-    public Game(WebSocketSession session, WebSocketSession session1) {
+    public Game(UserSocket session, UserSocket session1, ScoreRepository scoreRepository) {
         this.player = new Player(session);
         this.player1 = new Player(session1);
+        this.scoreRepository = scoreRepository;
     }
 
     public synchronized boolean isEnd() {
@@ -111,6 +109,20 @@ public class Game {
         isEnd = true;
         player.sendEnd(winner==0?0:winner==1?1:-1);
         player1.sendEnd(winner==0?1:winner==1?0:-1);
+        Score score0 = player.getUser().getScore();
+        Score score1 = player1.getUser().getScore();
+        switch (winner) {
+            case 0:
+                score0.addScore(10);
+                score1.addScore(-5);
+                break;
+            case 1:
+                score0.addScore(-5);
+                score1.addScore(10);
+                break;
+        }
+        scoreRepository.save(score0);
+        scoreRepository.save(score1);
     }
 
     public synchronized void collisionPlayer(Projectile projectile, Player player) {
@@ -150,8 +162,9 @@ public class Game {
                     player.getConnection().sendMessage(new TextMessage(new Gson().toJson(ob)));
                     player1.getConnection().sendMessage(new TextMessage(new Gson().toJson(ob)));
                 }catch(Exception e) {
-                    e.printStackTrace();
                 }
+                player.sendPlayerName(1, player1.getUserName());
+                player1.sendPlayerName(1, player.getUserName());
                 player.setX(100);
                 player1.setX(980);
                 player.sendPlayerLocation(0, player.getX(), player.getY());

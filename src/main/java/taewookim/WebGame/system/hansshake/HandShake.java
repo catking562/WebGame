@@ -1,18 +1,25 @@
-package taewookim.system.hansshake;
+package taewookim.WebGame.system.hansshake;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
-import taewookim.system.DataManager;
-import taewookim.system.game.Game;
-
-import java.util.Map;
+import taewookim.WebGame.repository.ScoreRepository;
+import taewookim.WebGame.system.MainSystem;
+import taewookim.WebGame.system.UserSocket;
+import taewookim.WebGame.system.game.AccessSystem;
+import taewookim.WebGame.system.game.Game;
+import taewookim.WebGame.system.game.GameManager;
+import taewookim.WebGame.system.watingroom.WatingRoom;
 
 public class HandShake {
 
-    private final WebSocketSession session;
-    private final WebSocketSession session1;
+    private final WatingRoom watingRoom;
+    private final GameManager gameManager;
+    private final ScoreRepository scoreRepository;
+
+    private final UserSocket session;
+    private final UserSocket session1;
     private boolean isEnd = false;
     private int status = 0;
 
@@ -26,38 +33,44 @@ public class HandShake {
     }
 
     public void accept(WebSocketSession sess) {
-        if(session==sess&&session.isOpen()) {
+        if(session.getSession()==sess&&session.isOpen()) {
             is = true;
         }
-        if(session1==sess&&session1.isOpen()) {
+        if(session1.getSession()==sess&&session1.isOpen()) {
             is1 = true;
         }
     }
 
     public synchronized void remove(WebSocketSession sess) {
-        if(session==sess) {
-            DataManager.watingRoom.add(session);
+        if(session.getSession()==sess) {
+            watingRoom.add(session);
             isEnd = true;
-        }else if(session1==sess) {
-            DataManager.watingRoom.add(session1);
+        }else if(session1.getSession()==sess) {
+            watingRoom.add(session1);
             isEnd = true;
         }
     }
 
-    public synchronized WebSocketSession getSession() {
+    public synchronized UserSocket getSession() {
         return session;
     }
 
-    public synchronized WebSocketSession getSession1() {
+    public synchronized UserSocket getSession1() {
         return session1;
     }
 
     public HandShake(
-            WebSocketSession session,
-            WebSocketSession session1
+            UserSocket session,
+            UserSocket session1,
+            WatingRoom watingRoom,
+            GameManager gameManager,
+            ScoreRepository scoreRepository
     ) {
         this.session = session;
         this.session1 = session1;
+        this.watingRoom = watingRoom;
+        this.gameManager = gameManager;
+        this.scoreRepository = scoreRepository;
     }
 
     public synchronized void update(Double deltaTime) {
@@ -80,11 +93,11 @@ public class HandShake {
             case 1:
                 if(time>5) {
                     status = -1;
-                    DataManager.watingRoom.add(session);
-                    DataManager.watingRoom.add(session1);
+                    watingRoom.add(session);
+                    watingRoom.add(session1);
                     isEnd = true;
                 }else if(is&&is1) {
-                    DataManager.gameManager.add(new Game(session, session1));
+                    gameManager.add(new Game(session, session1, scoreRepository));
                     isEnd = true;
                 }
                 break;

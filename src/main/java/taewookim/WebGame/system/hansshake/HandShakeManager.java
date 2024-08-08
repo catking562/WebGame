@@ -1,5 +1,6 @@
-package taewookim.system.hansshake;
+package taewookim.WebGame.system.hansshake;
 
+import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.ArrayList;
@@ -7,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Component
 public class HandShakeManager {
 
     private final List<HandShake> watinggames = new ArrayList<>();
@@ -29,8 +31,8 @@ public class HandShakeManager {
 
     public synchronized void add(HandShake game) {
         watinggames.add(game);
-        sessions.put(game.getSession(), game);
-        sessions.put(game.getSession1(), game);
+        sessions.put(game.getSession().getSession(), game);
+        sessions.put(game.getSession1().getSession(), game);
     }
 
     public synchronized void update(Double deltaTime) {
@@ -38,8 +40,8 @@ public class HandShakeManager {
         for (HandShake game : watinggames) {
             game.update(deltaTime);
             if(game.isEnd()) {
-                sessions.remove(game.getSession());
-                sessions.remove(game.getSession1());
+                sessions.remove(game.getSession().getSession());
+                sessions.remove(game.getSession1().getSession());
                 removing.add(game);
             }
         }

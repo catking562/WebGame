@@ -4,8 +4,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import taewookim.WebGame.entity.Score;
 import taewookim.WebGame.entity.User;
 import taewookim.WebGame.exception.HTTPApiException;
+import taewookim.WebGame.repository.ScoreRepository;
 import taewookim.WebGame.repository.UserRepository;
 import taewookim.WebGame.util.SHA;
 
@@ -13,29 +15,36 @@ import taewookim.WebGame.util.SHA;
 @Transactional
 public class LoginService {
 
-    UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final ScoreRepository scoreRepository;
 
-    public LoginService(UserRepository userRepository) {
+    public LoginService(UserRepository userRepository, ScoreRepository scoreRepository) {
         this.userRepository = userRepository;
+        this.scoreRepository = scoreRepository;
     }
 
-    public ResponseEntity<Boolean> login(String username, String password, HttpServletRequest request
+    public Boolean login(String username, String password, HttpServletRequest request
     ) throws HTTPApiException {
         User user = userRepository.getUserWithLogin(username, SHA.sha3_512(password));
         if (user == null) {
-            return ResponseEntity.ok(false);
+            return false;
+        }
+        if(user.getScore()==null) {
+            Score score = new Score();
+            user.appendScore(score);
+            scoreRepository.save(score);
         }
         request.getSession().setAttribute("loginUser", user);
-        return ResponseEntity.ok(true);
+        return true;
     }
 
     @Transactional
-    public ResponseEntity<Boolean> regist(
+    public Boolean regist(
             String username, String password
     ) throws HTTPApiException {
         User user = new User(username, SHA.sha3_512(password));
         userRepository.save(user);
-        return ResponseEntity.ok(true);
+        return true;
     }
 
 }
